@@ -1,0 +1,239 @@
+---  
+- name: Create vpc with multi-az subnets   
+  ec2_vpc_net:
+    name: "{{ prefix }}_vpc"
+    region: "{{ region }}"
+    cidr_block: 10.1.0.0/16
+  register: myvpc
+
+- debug:
+    var: myvpc
+
+- name: Create natbox subnet for AZ1
+  ec2_vpc_subnet:
+    state: present
+    region: "{{ region }}"
+    map_public: yes
+    vpc_id: "{{ myvpc.vpc.id }}"
+    cidr: 10.1.0.0/24
+    az: "{{ az0 }}"
+    tags:
+      Name: "{{ prefix }}_az1_nat_subnet"
+  register: az1_nat_subnet
+
+- name: Create natbox subnet for AZ2
+  ec2_vpc_subnet:
+    state: present
+    region: "{{ region }}"
+    map_public: yes
+    vpc_id: "{{ myvpc.vpc.id }}"
+    cidr: 10.1.1.0/24
+    az: "{{ az1 }}"
+    tags:
+      Name: "{{ prefix }}_az2_nat_subnet"
+  register: az2_nat_subnet
+
+- name: Create app subnet for AZ1
+  ec2_vpc_subnet:
+    state: present
+    region: "{{ region }}"
+    vpc_id: "{{ myvpc.vpc.id }}"
+    cidr: 10.1.2.0/24
+    az: "{{ az0 }}"
+    tags:
+      Name: "{{ prefix }}_az1_app_subnet"
+  register: az1_app_subnet
+
+- name: Create app subnet for AZ2
+  ec2_vpc_subnet:
+    state: present
+    region: "{{ region }}"
+    vpc_id: "{{ myvpc.vpc.id }}"
+    cidr: 10.1.3.0/24
+    az: "{{ az1 }}"
+    tags:
+      Name: "{{ prefix }}_az2_app_subnet"
+  register: az2_app_subnet
+
+- debug:
+    var: az2_nat_subnet
+- debug:
+    var: az2_app_subnet
+
+- name: Create the Internet Gateway
+  ec2_vpc_igw:
+    vpc_id: "{{ myvpc.vpc.id }}"
+    region: "{{ region }}"
+    state: present
+    tags:
+      Name: "{{ prefix }}_ig"
+  register: igw
+
+- debug:
+    var: igw
+
+- name: Check if EIP for AZ1 NAT GW exists
+  ec2_eip_info:
+    region: "{{ region }}"
+    filters:
+      tag:Name: "{{ prefix }}_az1_nat_gw_eip"
+  register: az1_nat_gw_eip_exists
+
+- debug:
+    var: az1_nat_gw_eip_exists
+
+- name: create Elastic IP for AZ1 NAT Gateway
+  ec2_eip:
+    region: "{{ region }}"
+    release_on_disassociation: yes
+    reuse_existing_ip_allowed: yes
+    tag_name: Name
+    tag_value: "{{ prefix }}_az1_nat_gw_eip"
+  register: az1_nat_gw_eip
+  when: az1_nat_gw_eip_exists.addresses is defined and (az1_nat_gw_eip_exists.addresses|length == 0)
+
+- name: Add name tag for AZ1 NAT GW EIP
+  ec2_tag:
+    region: "{{ region }}"
+    resource: "{{ az1_nat_gw_eip.allocation_id }}"
+    state: present
+    tags:
+      Name: "{{ prefix }}_az1_nat_gw_eip"
+  when: az1_nat_gw_eip is changed
+
+- debug:
+    var: az1_nat_gw_eip
+
+- name: Check if EIP for AZ2 NAT GW exists
+  ec2_eip_info:
+    region: "{{ region }}"
+    filters:
+      tag:Name: "{{ prefix }}_az2_nat_gw_eip"
+  register: az2_nat_gw_eip_exists
+
+- debug:
+    var: az2_nat_gw_eip_exists
+
+- name: create Elastic IP for AZ2 NAT Gateway
+  ec2_eip:
+    region: "{{ region }}"
+    release_on_disassociation: yes
+    reuse_existing_ip_allowed: yes
+    tag_name: Name
+    tag_value: "{{ prefix }}_az2_nat_gw_eip"
+  register: az2_nat_gw_eip
+  when: az2_nat_gw_eip_exists.addresses is defined and (az2_nat_gw_eip_exists.addresses|length == 0)
+
+- debug:
+    var: az2_nat_gw_eip
+
+- name: Add name tag for AZ2 NAT GW EIP
+  ec2_tag:
+    region: "{{ region }}"
+    resource: "{{ az2_nat_gw_eip.allocation_id }}"
+    state: present
+    tags:
+      Name: "{{ prefix }}_az2_nat_gw_eip"
+  when: az2_nat_gw_eip is changed
+
+- name: Create NAT Gateways for AZ1 NAT Subnet
+  ec2_vpc_nat_gateway:
+    subnet_id: "{{ az1_nat_subnet.subnet.id }}"
+    region: "{{ region }}"
+    state: present
+    wait: yes
+    allocation_id: "{% if az1_nat_gw_eip is changed %}{{ az1_nat_gw_eip.allocation_id }}{% else %}{{ az1_nat_gw_eip_exists.addresses[0].allocation_id }}{% endif %}"
+    if_exist_do_not_create: yes
+    # Tags key does not work https://github.com/ansible/ansible/pull/46624
+    # tags:
+    #   Name: "{{ prefix }}_az1_nat_gw"
+  register: az1_nat_gw
+
+- name: Add name tag for AZ1 NAT Subnet
+  ec2_tag:
+    region: "{{ region }}"
+    resource: "{{ az1_nat_gw.nat_gateway_id }}"
+    state: present
+    tags:
+      Name: "{{ prefix }}_az1_nat_gw"
+  when: az1_nat_gw is success
+
+- name: Create NAT Gateways for AZ2 NAT Subnet
+  ec2_vpc_nat_gateway:
+    subnet_id: "{{ az2_nat_subnet.subnet.id }}"
+    region: "{{ region }}"
+    state: present
+    allocation_id: "{% if az2_nat_gw_eip is changed %}{{ az2_nat_gw_eip.allocation_id }}{% else %}{{ az2_nat_gw_eip_exists.addresses[0].allocation_id }}{% endif %}"
+    wait: yes
+    if_exist_do_not_create: yes
+  register: az2_nat_gw
+
+- name: Add name tag for AZ2 NAT Subnet
+  ec2_tag:
+    region: "{{ region }}"
+    resource: "{{ az2_nat_gw.nat_gateway_id }}"
+    state: present
+    tags:
+      Name: "{{ prefix }}_az2_nat_gw"
+  when: az2_nat_gw is success
+
+- debug:
+    var: az2_nat_gw
+
+- name: Create NAT subnet route table
+  ec2_vpc_route_table:
+    region: "{{ region }}"
+    vpc_id: "{{ myvpc.vpc.id }}"
+    subnets:
+      - "{{ az1_nat_subnet.subnet.id }}"
+      - "{{ az2_nat_subnet.subnet.id }}"
+    routes:
+      - dest: 0.0.0.0/0
+        gateway_id: "{{ igw.gateway_id }}"
+    tags:
+      Name: "{{ prefix }}_azx_nat_route_table"
+  register: nat_subnet_route_table
+
+- debug:
+    var: nat_subnet_route_table
+
+- name: Create AZ1 App subnet route table
+  ec2_vpc_route_table:
+    region: "{{ region }}"
+    vpc_id: "{{ myvpc.vpc.id }}"
+    subnets:
+      - "{{ az1_app_subnet.subnet.id }}"
+    routes:
+      - dest: 0.0.0.0/0
+        gateway_id: "{{ az1_nat_gw.nat_gateway_id }}"
+    tags:
+      Name: "{{ prefix }}_az1_app_route_table"
+  register: az1_app_route_table
+
+- name: Create AZ2 App subnet route table
+  ec2_vpc_route_table:
+    region: "{{ region }}"
+    vpc_id: "{{ myvpc.vpc.id }}"
+    subnets:
+      - "{{ az2_app_subnet.subnet.id }}"
+    routes:
+      - dest: 0.0.0.0/0
+        gateway_id: "{{ az2_nat_gw.nat_gateway_id }}"
+    tags:
+      Name: "{{ prefix }}_az2_app_route_table"
+  register: az2_app_route_table
+
+- debug:
+    var: az2_app_route_table
+
+
+#    - name: write vpc id to "{{ prefix }}"_vpc_info file
+#      #sudo: yes
+#      local_action: shell echo "{{ prefix }}"_vpc":" "{{ vpc.vpc_id }}" 
+#                      > "{{ prefix }}"_vpc_info
+#    - name: write subnets id to "{{ prefix }}"_vpc_info file
+#      #sudo: yes
+#      local_action: shell echo "{{ item.resource_tags.Name }}"":" "{{ item.id }}" 
+#                      >> "{{ prefix }}"_vpc_info
+#      with_items: vpc.subnets
+#
