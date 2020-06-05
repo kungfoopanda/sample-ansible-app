@@ -1,0 +1,179 @@
+---  
+- hosts: localhost  
+  gather_facts: no    
+  vars:  
+    region: us-west-2
+    # prefix for naming  
+    prefix: myapp
+    # availability zones
+    az0: us-west-2a
+    az1: us-west-2b
+  tasks:  
+    - name: Create vpc with multi-az subnets   
+      ec2_vpc_net:
+        name: "{{ prefix }}_vpc"
+        region: "{{ region }}"
+        cidr_block: 10.1.0.0/16
+      register: myvpc
+
+    - debug:
+        var: myvpc
+
+    - name: Create natbox subnet for AZ1
+      ec2_vpc_subnet:
+        state: present
+        region: "{{ region }}"
+        map_public: yes
+        vpc_id: "{{ myvpc.vpc.id }}"
+        cidr: 10.1.0.0/24
+        az: "{{ az0 }}"
+        tags:
+          Name: "{{ prefix }} AZ1 Nat Subnet"
+      register: az1_nat_subnet
+
+    - name: Create natbox subnet for AZ2
+      ec2_vpc_subnet:
+        state: present
+        region: "{{ region }}"
+        map_public: yes
+        vpc_id: "{{ myvpc.vpc.id }}"
+        cidr: 10.1.1.0/24
+        az: "{{ az1 }}"
+        tags:
+          Name: "{{ prefix }} AZ2 Nat Subnet"
+      register: az2_nat_subnet
+
+    - name: Create app subnet for AZ1
+      ec2_vpc_subnet:
+        state: present
+        region: "{{ region }}"
+        vpc_id: "{{ myvpc.vpc.id }}"
+        cidr: 10.1.2.0/24
+        az: "{{ az0 }}"
+        tags:
+          Name: "{{ prefix }} AZ1 app Subnet"
+      register: az1_app_subnet
+
+    - name: Create app subnet for AZ2
+      ec2_vpc_subnet:
+        state: present
+        region: "{{ region }}"
+        vpc_id: "{{ myvpc.vpc.id }}"
+        cidr: 10.1.3.0/24
+        az: "{{ az1 }}"
+        tags:
+          Name: "{{ prefix }} AZ2 app Subnet"
+      register: az2_app_subnet
+
+    - debug:
+        var: az2_nat_subnet
+    - debug:
+        var: az2_app_subnet
+
+    - name: Create the Internet Gateway
+      ec2_vpc_igw:
+        vpc_id: "{{ myvpc.vpc.id }}"
+        region: "{{ region }}"
+        state: present
+        tags:
+          Name: "{{ prefix }}_ig"
+      register: igw
+
+    - debug:
+        var: igw
+
+    - name: Create NAT Gateways for AZ1 NAT Subnet
+      ec2_vpc_nat_gateway:
+        subnet_id: "{{ az1_nat_subnet.subnet.id }}"
+        region: "{{ region }}"
+        state: present
+        if_exist_do_not_create: yes
+        # Tags key does not work https://github.com/ansible/ansible/pull/46624
+        # tags:
+        #   Name: "{{ prefix }}_az1_nat_gw"
+      register: az1_nat_gw
+
+    - name: Add name tag for AZ1 NAT Subnet
+      ec2_tag:
+        region: "{{ region }}"
+        resource: "{{ az1_nat_gw.nat_gateway_id }}"
+        state: present
+        tags:
+          Name: "{{ prefix }}_az1_nat_gw"
+
+    - name: Create NAT Gateways for AZ2 NAT Subnet
+      ec2_vpc_nat_gateway:
+        subnet_id: "{{ az2_nat_subnet.subnet.id }}"
+        region: "{{ region }}"
+        state: present
+        if_exist_do_not_create: yes
+      register: az2_nat_gw
+
+    - name: Add name tag for AZ2 NAT Subnet
+      ec2_tag:
+        region: "{{ region }}"
+        resource: "{{ az2_nat_gw.nat_gateway_id }}"
+        state: present
+        tags:
+          Name: "{{ prefix }}_az2_nat_gw"
+
+    - debug:
+        var: az2_nat_gw
+
+    - name: Create NAT subnet route table
+      ec2_vpc_route_table:
+        region: "{{ region }}"
+        vpc_id: "{{ myvpc.vpc.id }}"
+        subnets:
+          - "{{ az1_nat_subnet.subnet.id }}"
+          - "{{ az2_nat_subnet.subnet.id }}"
+        routes:
+          - dest: 0.0.0.0/0
+            gateway_id: "{{ igw.gateway_id }}"
+        tags:
+          Name: "{{ prefix }}_nat_route_table"
+      register: nat_subnet_route_table
+
+    - debug:
+        var: nat_subnet_route_table
+
+    - name: Create AZ1 App subnet route table
+      ec2_vpc_route_table:
+        region: "{{ region }}"
+        vpc_id: "{{ myvpc.vpc.id }}"
+        subnets:
+          - "{{ az1_app_subnet.subnet.id }}"
+        routes:
+          - dest: 0.0.0.0/0
+            gateway_id: "{{ az1_nat_gw.nat_gateway_id }}"
+        tags:
+          Name: "{{ prefix }}_az1_app_route_table"
+      register: az1_app_route_table
+
+    - name: Create AZ2 App subnet route table
+      ec2_vpc_route_table:
+        region: "{{ region }}"
+        vpc_id: "{{ myvpc.vpc.id }}"
+        subnets:
+          - "{{ az2_app_subnet.subnet.id }}"
+        routes:
+          - dest: 0.0.0.0/0
+            gateway_id: "{{ az2_nat_gw.nat_gateway_id }}"
+        tags:
+          Name: "{{ prefix }}_az2_app_route_table"
+      register: az2_app_route_table
+
+    - debug:
+        var: az2_app_route_table
+
+
+#    - name: write vpc id to "{{ prefix }}"_vpc_info file
+#      #sudo: yes
+#      local_action: shell echo "{{ prefix }}"_vpc":" "{{ vpc.vpc_id }}" 
+#                      > "{{ prefix }}"_vpc_info
+#    - name: write subnets id to "{{ prefix }}"_vpc_info file
+#      #sudo: yes
+#      local_action: shell echo "{{ item.resource_tags.Name }}"":" "{{ item.id }}" 
+#                      >> "{{ prefix }}"_vpc_info
+#      with_items: vpc.subnets
+#
