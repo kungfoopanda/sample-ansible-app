@@ -1,0 +1,38 @@
+---
+- name: Create the vpc
+  ec2_vpc_net:
+    name: "{{ prefix }}_vpc"
+    region: "{{ region }}"
+    cidr_block: 10.1.0.0/16
+  register: vpc
+
+- name: Create the Internet Gateway
+  ec2_vpc_igw:
+    vpc_id: "{{ vpc.vpc.id }}"
+    region: "{{ region }}"
+    state: present
+    tags:
+      Name: "{{ prefix }}_ig"
+  register: igw
+
+- name: Find my public ip
+  uri:
+    url: "http://ifconfig.me"
+    return_content: yes
+    http_agent: "curl/7.10.0"
+  register: my_public_ip
+
+- name: Create a secrity group with all access to my ip
+  ec2_group:
+    region: "{{ region }}"
+    vpc_id: "{{ vpc.vpc.id }}"
+    description: Allow all traffic from my IP
+    name: Allow SSH MyIP
+    rules:
+      - proto: tcp
+        from_port: 22
+        to_port: 22
+        cidr_ip: "{{ my_public_ip.content }}/32"
+        rule_desc: allow ssh from my ip
+  register: myip_ssh_securitygroup
+

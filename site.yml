@@ -1,9 +1,25 @@
 ---
 - hosts: all
   roles: 
-  - common
+    - common
+  tags: common_tasks
 
-# - hosts: webserver
-#  roles:
-#  - web
+- hosts: network
+  roles:
+    - network
+  tags: setup_network
 
+- hosts: infra
+  roles:
+    - infra
+  tags: setup_infra
+
+- hosts: app
+  roles:
+    - app
+  tags: setup_app
+
+- hosts: db
+  roles:
+    - db
+  tags: setup_db

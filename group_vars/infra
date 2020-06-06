@@ -1,0 +1,4 @@
+---
+ec2_img: t2.micro
+ec2_ami: ami-003634241a8fcdec0
+

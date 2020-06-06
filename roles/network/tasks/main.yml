@@ -1,0 +1,14 @@
+---  
+- name: Create VPC, InetGW and SecurityGroup
+  include_tasks: create_vpc.yml
+
+- name: Create natbox subnets
+  include_tasks: create_subnets.yml
+
+- name: Create EIPs and NatGWs
+  include_tasks: create_eip_natgw.yml
+
+#- name: write vpc id to "{{ prefix }}"_vpc_info file
+#  local_action: shell echo "{{ prefix }}"_vpc":" "{{ vpc.vpc.id }}" 
+#                  > "{{ prefix }}"_vpc_info
+#

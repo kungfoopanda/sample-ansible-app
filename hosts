@@ -1,3 +1,8 @@
 [local]
 localhost
 
+[network]
+localhost
+
+[infra]
+localhost
