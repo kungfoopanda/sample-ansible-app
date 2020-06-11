@@ -33,6 +33,21 @@
         to_port: 22
         cidr_ip: "{{ my_public_ip.content }}/32"
         rule_desc: allow ssh from my ip
+      - proto: tcp
+        from_port: 5432
+        to_port: 5432
+        cidr_ip: "10.1.0.0/16"
+        rule_desc: allow Postgres from all internal network
+      - proto: tcp
+        from_port: 8080
+        to_port: 8080
+        cidr_ip: "10.1.0.0/16"
+        rule_desc: allow API access from all internal network
+      - proto: tcp
+        from_port: 80
+        to_port: 80
+        cidr_ip: "10.1.0.0/16"
+        rule_desc: allow Web access from all internal network
   register: sec_grp
 
 - name: Save VPC details

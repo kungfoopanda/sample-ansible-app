@@ -27,7 +27,16 @@
     iops: "{{ iops }}"
     subnet: "{{ db_sub_grp.subnet_group.name }}"
     wait: yes
+    wait_timeout: 1800
   register: db
 
 - debug:
     var: db
+
+- name: Save DB details
+  blockinfile:
+    path: "{{ dynamic_config }}"
+    block: |
+      db_endpoint: "{{ db.instance.endpoint }}"
+    create: yes
+    marker: "# {mark} ANSIBLE MANAGED BLOCK: DB"
