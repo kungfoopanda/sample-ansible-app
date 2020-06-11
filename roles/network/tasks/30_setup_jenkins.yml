@@ -6,11 +6,14 @@
     image: "{{ ec2_ami }}"
     wait: yes
     group_id: "{{ sec_grp.group_id }}"
-    count: 1
     vpc_subnet_id: "{{az1_subnet.subnet.id }}"
     assign_public_ip: yes
+    count_tag:
+      type: jenkins
+    exact_count: 1
     instance_tags:
       Name: "{{ prefix }}_jenkins_box"
+      type: jenkins
   register: jenkins_box
 
 - debug:
@@ -20,9 +23,14 @@
   blockinfile:
     path: "{{ dynamic_config }}"
     block: |
-      jenkins_instance_id: "{{ jenkins_box.instance_ids[0] }}"
+      {% if not jenkins_box.instance_ids %}
+      {% set ins_id = jenkins_box.tagged_instances[0].id %}
+      {% else %}
+      {% set ins_id = jenkins_box.instance_ids[0] %}
+      {% endif %}
+      jenkins_instance_id: "{{ ins_id }}"
     create: yes
-    marker: "# {mark} ANSIBLE MANAGED BLOCK: Route Table"
+    marker: "# {mark} ANSIBLE MANAGED BLOCK: Jenkins"
 
 
 # - name: Install Java 1.8

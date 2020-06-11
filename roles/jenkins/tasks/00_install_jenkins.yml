@@ -1,0 +1,26 @@
+- name: Install Java
+  yum:
+    name: "{{java.VERSION}}"
+    state: latest  
+  become: true
+  register: java
+
+- name: Setup Jenkins Repo
+  yum_repository:
+    name: jenkins
+    description: Jenkins Repo
+    baseurl: http://pkg.jenkins.io/redhat
+    gpgkey: https://pkg.jenkins.io/redhat/jenkins.io.key
+    gpgcheck: yes
+  become: true
+  register: jen_repo
+
+- name: Install Jenkins
+  yum:
+    name: jenkins
+    state: latest
+  become: true
+  register: jenkins_pkg
+
+- debug:
+    var: jenkins_pkg

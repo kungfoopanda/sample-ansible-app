@@ -1,4 +1,3 @@
----
 - name: Create the vpc
   ec2_vpc_net:
     name: "{{ prefix }}_vpc"

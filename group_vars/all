@@ -7,3 +7,5 @@ ec2_type: t2.micro
 ec2_ami: ami-0e34e7b9ca0ace12d
 dynamic_config: "/home/ec2-user/project/group_vars/network_details"
 ssh_keypair_id: create-via-ansible
+ec2_user: ec2_user
+ssh_key_path: /home/ec2-user/.ssh/create-via-ansible.pem

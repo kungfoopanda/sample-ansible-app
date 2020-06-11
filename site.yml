@@ -2,3 +2,8 @@
   roles:
     - network
   tags: setup_network
+
+- hosts: jenkins
+  roles:
+    - jenkins
+  tags: setup_jenkins

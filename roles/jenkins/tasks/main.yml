@@ -1,0 +1,4 @@
+---  
+- name: Install and Setup Jenkins 
+  include_tasks: 00_install_jenkins.yml
+
