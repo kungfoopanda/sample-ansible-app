@@ -1,93 +1,93 @@
-- name: Check if EIP for AZ1 NAT GW exists
-  ec2_eip_info:
-    region: "{{ region }}"
-    filters:
-      tag:Name: "{{ prefix }}_az1_nat_gw_eip"
-  register: az1_nat_gw_eip_exists
+# - name: Check if EIP for AZ1 NAT GW exists
+#   ec2_eip_info:
+#     region: "{{ region }}"
+#     filters:
+#       tag:Name: "{{ prefix }}_az1_nat_gw_eip"
+#   register: az1_nat_gw_eip_exists
 
-- name: create Elastic IP for AZ1 NAT Gateway
-  ec2_eip:
-    region: "{{ region }}"
-    release_on_disassociation: yes
-    reuse_existing_ip_allowed: yes
-    tag_name: Name
-    tag_value: "{{ prefix }}_az1_nat_gw_eip"
-  register: az1_nat_gw_eip
-  when: az1_nat_gw_eip_exists.addresses is defined and (az1_nat_gw_eip_exists.addresses|length == 0)
+# - name: create Elastic IP for AZ1 NAT Gateway
+#   ec2_eip:
+#     region: "{{ region }}"
+#     release_on_disassociation: yes
+#     reuse_existing_ip_allowed: yes
+#     tag_name: Name
+#     tag_value: "{{ prefix }}_az1_nat_gw_eip"
+#   register: az1_nat_gw_eip
+#   when: az1_nat_gw_eip_exists.addresses is defined and (az1_nat_gw_eip_exists.addresses|length == 0)
 
-- name: Add name tag for AZ1 NAT GW EIP
-  ec2_tag:
-    region: "{{ region }}"
-    resource: "{{ az1_nat_gw_eip.allocation_id }}"
-    state: present
-    tags:
-      Name: "{{ prefix }}_az1_nat_gw_eip"
-  when: az1_nat_gw_eip is changed
+# - name: Add name tag for AZ1 NAT GW EIP
+#   ec2_tag:
+#     region: "{{ region }}"
+#     resource: "{{ az1_nat_gw_eip.allocation_id }}"
+#     state: present
+#     tags:
+#       Name: "{{ prefix }}_az1_nat_gw_eip"
+#   when: az1_nat_gw_eip is changed
 
-- name: Check if EIP for AZ2 NAT GW exists
-  ec2_eip_info:
-    region: "{{ region }}"
-    filters:
-      tag:Name: "{{ prefix }}_az2_nat_gw_eip"
-  register: az2_nat_gw_eip_exists
+# - name: Check if EIP for AZ2 NAT GW exists
+#   ec2_eip_info:
+#     region: "{{ region }}"
+#     filters:
+#       tag:Name: "{{ prefix }}_az2_nat_gw_eip"
+#   register: az2_nat_gw_eip_exists
 
-- name: create Elastic IP for AZ2 NAT Gateway
-  ec2_eip:
-    region: "{{ region }}"
-    release_on_disassociation: yes
-    reuse_existing_ip_allowed: yes
-    tag_name: Name
-    tag_value: "{{ prefix }}_az2_nat_gw_eip"
-  register: az2_nat_gw_eip
-  when: az2_nat_gw_eip_exists.addresses is defined and (az2_nat_gw_eip_exists.addresses|length == 0)
+# - name: create Elastic IP for AZ2 NAT Gateway
+#   ec2_eip:
+#     region: "{{ region }}"
+#     release_on_disassociation: yes
+#     reuse_existing_ip_allowed: yes
+#     tag_name: Name
+#     tag_value: "{{ prefix }}_az2_nat_gw_eip"
+#   register: az2_nat_gw_eip
+#   when: az2_nat_gw_eip_exists.addresses is defined and (az2_nat_gw_eip_exists.addresses|length == 0)
 
-- name: Add name tag for AZ2 NAT GW EIP
-  ec2_tag:
-    region: "{{ region }}"
-    resource: "{{ az2_nat_gw_eip.allocation_id }}"
-    state: present
-    tags:
-      Name: "{{ prefix }}_az2_nat_gw_eip"
-  when: az2_nat_gw_eip is changed
+# - name: Add name tag for AZ2 NAT GW EIP
+#   ec2_tag:
+#     region: "{{ region }}"
+#     resource: "{{ az2_nat_gw_eip.allocation_id }}"
+#     state: present
+#     tags:
+#       Name: "{{ prefix }}_az2_nat_gw_eip"
+#   when: az2_nat_gw_eip is changed
 
-- name: Create NAT Gateways for AZ1 NAT Subnet
-  ec2_vpc_nat_gateway:
-    subnet_id: "{{ az1_nat_subnet.subnet.id }}"
-    region: "{{ region }}"
-    state: present
-    wait: yes
-    allocation_id: "{% if az1_nat_gw_eip is changed %}{{ az1_nat_gw_eip.allocation_id }}{% else %}{{ az1_nat_gw_eip_exists.addresses[0].allocation_id }}{% endif %}"
-    if_exist_do_not_create: yes
-    # Tags key does not work https://github.com/ansible/ansible/pull/46624
-    # tags:
-    #   Name: "{{ prefix }}_az1_nat_gw"
-  register: az1_nat_gw
+# - name: Create NAT Gateways for AZ1 NAT Subnet
+#   ec2_vpc_nat_gateway:
+#     subnet_id: "{{ az1_nat_subnet.subnet.id }}"
+#     region: "{{ region }}"
+#     state: present
+#     wait: yes
+#     allocation_id: "{% if az1_nat_gw_eip is changed %}{{ az1_nat_gw_eip.allocation_id }}{% else %}{{ az1_nat_gw_eip_exists.addresses[0].allocation_id }}{% endif %}"
+#     if_exist_do_not_create: yes
+#     # Tags key does not work https://github.com/ansible/ansible/pull/46624
+#     # tags:
+#     #   Name: "{{ prefix }}_az1_nat_gw"
+#   register: az1_nat_gw
 
-- name: Add name tag for AZ1 NAT Subnet
-  ec2_tag:
-    region: "{{ region }}"
-    resource: "{{ az1_nat_gw.nat_gateway_id }}"
-    state: present
-    tags:
-      Name: "{{ prefix }}_az1_nat_gw"
-  when: az1_nat_gw is success
+# - name: Add name tag for AZ1 NAT Subnet
+#   ec2_tag:
+#     region: "{{ region }}"
+#     resource: "{{ az1_nat_gw.nat_gateway_id }}"
+#     state: present
+#     tags:
+#       Name: "{{ prefix }}_az1_nat_gw"
+#   when: az1_nat_gw is success
 
-- name: Create NAT Gateways for AZ2 NAT Subnet
-  ec2_vpc_nat_gateway:
-    subnet_id: "{{ az2_nat_subnet.subnet.id }}"
-    region: "{{ region }}"
-    state: present
-    allocation_id: "{% if az2_nat_gw_eip is changed %}{{ az2_nat_gw_eip.allocation_id }}{% else %}{{ az2_nat_gw_eip_exists.addresses[0].allocation_id }}{% endif %}"
-    wait: yes
-    if_exist_do_not_create: yes
-  register: az2_nat_gw
+# - name: Create NAT Gateways for AZ2 NAT Subnet
+#   ec2_vpc_nat_gateway:
+#     subnet_id: "{{ az2_nat_subnet.subnet.id }}"
+#     region: "{{ region }}"
+#     state: present
+#     allocation_id: "{% if az2_nat_gw_eip is changed %}{{ az2_nat_gw_eip.allocation_id }}{% else %}{{ az2_nat_gw_eip_exists.addresses[0].allocation_id }}{% endif %}"
+#     wait: yes
+#     if_exist_do_not_create: yes
+#   register: az2_nat_gw
 
-- name: Add name tag for AZ2 NAT Subnet
-  ec2_tag:
-    region: "{{ region }}"
-    resource: "{{ az2_nat_gw.nat_gateway_id }}"
-    state: present
-    tags:
-      Name: "{{ prefix }}_az2_nat_gw"
-  when: az2_nat_gw is success
+# - name: Add name tag for AZ2 NAT Subnet
+#   ec2_tag:
+#     region: "{{ region }}"
+#     resource: "{{ az2_nat_gw.nat_gateway_id }}"
+#     state: present
+#     tags:
+#       Name: "{{ prefix }}_az2_nat_gw"
+#   when: az2_nat_gw is success
 
