@@ -1,5 +1,0 @@
----
-region: us-west-2
-prefix: app
-az0: us-west-2a
-az1: us-west-2b

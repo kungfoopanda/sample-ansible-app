@@ -1,14 +1,16 @@
 ---  
 - name: Create VPC, InetGW and SecurityGroup
-  include_tasks: create_vpc.yml
+  include_tasks: 00_create_vpc.yml
 
-- name: Create natbox subnets
-  include_tasks: create_subnets.yml
+# - name: Create natbox subnets
+#   include_tasks: 10_create_subnets.yml
 
-- name: Create EIPs and NatGWs
-  include_tasks: create_eip_natgw.yml
+# - name: Create EIPs and NatGWs
+#   include_tasks: 20_create_eip_natgw.yml
 
-#- name: write vpc id to "{{ prefix }}"_vpc_info file
-#  local_action: shell echo "{{ prefix }}"_vpc":" "{{ vpc.vpc.id }}" 
-#                  > "{{ prefix }}"_vpc_info
-#
+# - name: Create route tables
+#   include_tasks: 30_create_route_tables.yml
+
+# - name: Create the jumpbox
+#   include_tasks: 40_create_jumpbox.yml
+

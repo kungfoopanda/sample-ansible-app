@@ -3,4 +3,6 @@ region: us-west-2
 prefix: app
 az0: us-west-2a
 az1: us-west-2b
-
+ec2_img: t2.micro
+ec2_ami: ami-003634241a8fcdec0
+dynamic_config: "common_var/network_config"

@@ -34,5 +34,13 @@
         to_port: 22
         cidr_ip: "{{ my_public_ip.content }}/32"
         rule_desc: allow ssh from my ip
-  register: myip_ssh_securitygroup
+  register: sg
 
+- name: Save VPC details
+  blockinfile:
+    path: "{{ dynamic_config }}"
+    block: |
+      vpc_id: "{{ vpc.vpc.id }}"
+      igw_id: "{{ igw.gateway_id }}"
+      sg_id: "{{ sg.group_id }}"
+    create: yes
