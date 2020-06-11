@@ -1,5 +1,5 @@
 size: 100
-instance_type: db.t1.micro
+instance_type: db.m5.large
 db_engine: postgres    
 engine_version: 11.6-R1
 parameter_group: dbpg1

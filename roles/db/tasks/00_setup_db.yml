@@ -1,3 +1,14 @@
+- name: Create DB sugnet Group
+  rds_subnet_group:
+    state: present
+    region: "{{ region }}"
+    name: "{{ prefix }}_db_sub_grp"
+    description: Subnet group for {{ prefix }}_db
+    subnets:
+      - "{{ az1_subnet_id }}"
+      - "{{ az2_subnet_id }}"
+  register: db_sub_grp
+
 - name: Create multi-zone Postgres on RDS in a VPC
   local_action:
     module: rds
@@ -14,4 +25,9 @@
     password: "{{ password }}"
     vpc_security_groups: "{{ sec_grp_id }}"
     iops: "{{ iops }}"
-    subnet: "{{az1_subnet_id }}"
+    subnet: "{{ db_sub_grp.subnet_group.name }}"
+    wait: yes
+  register: db
+
+- debug:
+    var: db
