@@ -2,15 +2,12 @@
 - name: Create VPC, InetGW and SecurityGroup
   include_tasks: 00_create_vpc.yml
 
-# - name: Create natbox subnets
-#   include_tasks: 10_create_subnets.yml
+- name: Create subnets
+  include_tasks: 10_create_subnets.yml
 
-# - name: Create EIPs and NatGWs
-#   include_tasks: 20_create_eip_natgw.yml
+- name: Create route tables
+  include_tasks: 20_create_route_tables.yml
 
-# - name: Create route tables
-#   include_tasks: 30_create_route_tables.yml
-
-# - name: Create the jumpbox
-#   include_tasks: 40_create_jumpbox.yml
+- name: Create the Jenkins box
+  include_tasks: 30_setup_jenkins.yml
 

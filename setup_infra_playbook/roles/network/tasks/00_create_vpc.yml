@@ -13,7 +13,7 @@
     state: present
     tags:
       Name: "{{ prefix }}_ig"
-  register: igw
+  register: inet_gw
 
 - name: Find my public ip
   uri:
@@ -26,21 +26,22 @@
   ec2_group:
     region: "{{ region }}"
     vpc_id: "{{ vpc.vpc.id }}"
-    description: Allow all traffic from my IP
-    name: Allow SSH MyIP
+    description: "Security Group for {{ prefix }}"
+    name: "{{ prefix }} Security Group"
     rules:
       - proto: tcp
         from_port: 22
         to_port: 22
         cidr_ip: "{{ my_public_ip.content }}/32"
         rule_desc: allow ssh from my ip
-  register: sg
+  register: sec_grp
 
 - name: Save VPC details
   blockinfile:
     path: "{{ dynamic_config }}"
     block: |
       vpc_id: "{{ vpc.vpc.id }}"
-      igw_id: "{{ igw.gateway_id }}"
-      sg_id: "{{ sg.group_id }}"
+      inet_gw_id: "{{ inet_gw.gateway_id }}"
+      sec_grp_id: "{{ sec_grp.group_id }}"
     create: yes
+    marker: "# {mark} ANSIBLE MANAGED BLOCK: VPC"

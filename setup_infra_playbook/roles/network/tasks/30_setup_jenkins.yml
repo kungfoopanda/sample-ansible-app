@@ -1,0 +1,35 @@
+- name: Create EC2 instance for Jenkins
+  ec2:
+    region: "{{ region }}"
+    key_name: "{{ ssh_keypair_id }}"
+    instance_type: "{{ ec2_type }}"
+    image: "{{ ec2_ami }}"
+    wait: yes
+    group_id: "{{ sec_grp.group_id }}"
+    count: 1
+    vpc_subnet_id: "{{az1_subnet.subnet.id }}"
+    assign_public_ip: yes
+    instance_tags:
+      Name: "{{ prefix }}_jenkins_box"
+  register: jenkins_box
+
+- debug:
+    var: jenkins_box
+
+- name: Save Jenkins box details
+  blockinfile:
+    path: "{{ dynamic_config }}"
+    block: |
+      jenkins_instance_id: "{{ jenkins_box.instance_ids[0] }}"
+    create: yes
+    marker: "# {mark} ANSIBLE MANAGED BLOCK: Route Table"
+
+- name: Get AWS inventory
+    plugin: aws_ec2:
+    regions: 
+      - "{{ region }}"
+  register: ec2_inventory
+
+- debug:
+    var: ec2_inventory
+# - name: Install Java 1.8

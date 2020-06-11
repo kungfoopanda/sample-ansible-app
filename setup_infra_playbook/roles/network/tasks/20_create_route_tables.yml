@@ -3,38 +3,19 @@
     region: "{{ region }}"
     vpc_id: "{{ vpc.vpc.id }}"
     subnets:
-      - "{{ az1_nat_subnet.subnet.id }}"
-      - "{{ az2_nat_subnet.subnet.id }}"
+      - "{{ az1_subnet.subnet.id }}"
+      - "{{ az2_subnet.subnet.id }}"
     routes:
       - dest: 0.0.0.0/0
-        gateway_id: "{{ igw.gateway_id }}"
+        gateway_id: "{{ inet_gw.gateway_id }}"
     tags:
-      Name: "{{ prefix }}_azx_nat_route_table"
-  register: nat_subnet_route_table
+      Name: "{{ prefix }}_route_table"
+  register: route_table
 
-# - name: Create AZ1 App subnet route table
-#   ec2_vpc_route_table:
-#     region: "{{ region }}"
-#     vpc_id: "{{ vpc.vpc.id }}"
-#     subnets:
-#       - "{{ az1_app_subnet.subnet.id }}"
-#     routes:
-#       - dest: 0.0.0.0/0
-#         gateway_id: "{{ az1_nat_gw.nat_gateway_id }}"
-#     tags:
-#       Name: "{{ prefix }}_az1_app_route_table"
-#   register: az1_app_route_table
-
-# - name: Create AZ2 App subnet route table
-#   ec2_vpc_route_table:
-#     region: "{{ region }}"
-#     vpc_id: "{{ vpc.vpc.id }}"
-#     subnets:
-#       - "{{ az2_app_subnet.subnet.id }}"
-#     routes:
-#       - dest: 0.0.0.0/0
-#         gateway_id: "{{ az2_nat_gw.nat_gateway_id }}"
-#     tags:
-#       Name: "{{ prefix }}_az2_app_route_table"
-#   register: az2_app_route_table
-
+- name: Save Route table details
+  blockinfile:
+    path: "{{ dynamic_config }}"
+    block: |
+      route_table_id: "{{ route_table.route_table.id }}"
+    create: yes
+    marker: "# {mark} ANSIBLE MANAGED BLOCK: Route Table"

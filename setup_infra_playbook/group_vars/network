@@ -3,6 +3,7 @@ region: us-west-2
 prefix: app
 az0: us-west-2a
 az1: us-west-2b
-ec2_img: t2.micro
-ec2_ami: ami-003634241a8fcdec0
+ec2_type: t2.micro
+ec2_ami: ami-0e34e7b9ca0ace12d
 dynamic_config: "common_var/network_config"
+ssh_keypair_id: create-via-ansible
