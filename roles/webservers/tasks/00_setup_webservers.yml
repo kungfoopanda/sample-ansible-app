@@ -1,16 +1,16 @@
-- name: Install curl on api
+- name: Install curl on web
   become: yes
   yum:
     name: curl
     state: present
 
-- name: Install wget on api
+- name: Install wget on web
   become: yes
   yum:
     name: wget
     state: present
 
-- name: Add epel-release repo on api
+- name: Add epel-release repo on web
   become: yes
   command: amazon-linux-extras install epel -y
 
@@ -32,7 +32,8 @@
     name: git
     state: present
 
-- name: Clone api app repo
+
+- name: Clone web app repo
   git:
     repo: https://github.com/kungfoopanda/screening-app.git
     dest: /home/ec2-user/myapp
@@ -41,12 +42,12 @@
 - name: Install all npm modules
   shell: npm install
   args:
-    chdir: /home/ec2-user/myapp/api
+    chdir: /home/ec2-user/myapp/web
 
 - name: Start the node server
   shell: npm start &
   args:
-    chdir: /home/ec2-user/myapp/api
+    chdir: /home/ec2-user/myapp/web
   environment:
-    PORT: 8080
+    PORT: 8081
     DB: "{{db_endpoint}}"

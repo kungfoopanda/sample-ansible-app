@@ -99,15 +99,9 @@
     listeners:
       - protocol: http
         load_balancer_port: 80
-        instance_port: 80
+        instance_port: 8081
     instance_ids: "{{ webserver_ids }}"
   register: web_lb
-
-- debug:
-    var: api_lb
-
-- debug:
-    var: web_lb
 
 - name: Save LB details
   blockinfile:

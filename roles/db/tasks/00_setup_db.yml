@@ -37,6 +37,6 @@
   blockinfile:
     path: "{{ dynamic_config }}"
     block: |
-      db_endpoint: "{{ db.instance.endpoint }}"
+      db_endpoint: "postgres://{{ username }}:{{ password }}@{{ db.instance.endpoint }}/{{ db_name }}"
     create: yes
     marker: "# {mark} ANSIBLE MANAGED BLOCK: DB"

@@ -12,7 +12,7 @@ ssh_keypair_id: ansible-singapore
 ec2_user: ec2_user
 # ssh_key_path: /home/ec2-user/.ssh/create-via-ansible.pem
 ssh_key_path: /home/ec2-user/.ssh/ansible-singapore.pem
-
+github_repo: https://github.com/kungfoopanda/screening-app.git
 
 # BEGIN ANSIBLE MANAGED BLOCK: VPC
 vpc_id: "vpc-0866ae04aa1896e26"
@@ -30,8 +30,11 @@ route_table_id: "rtb-0fb213b7a7c04a497"
 jenkins_instance_id: "i-0eae56bf0a3e4eb00"
 # END ANSIBLE MANAGED BLOCK: Jenkins
 # BEGIN ANSIBLE MANAGED BLOCK: LB
-api_lb_name: "app-api-lb-630451122.ap-southeast-1.elb.amazonaws.com"
+api_lb_name: "app-api-lb-1016107914.ap-southeast-1.elb.amazonaws.com"
 api_lb_port: 8080
 web_lb_name: "app-web-lb-270412432.ap-southeast-1.elb.amazonaws.com"
 web_lb_port: 80
 # END ANSIBLE MANAGED BLOCK: LB
+# BEGIN ANSIBLE MANAGED BLOCK: DB
+db_endpoint: "postgres://pguser:somethingfishy@app-db.cvriqdaroywi.ap-southeast-1.rds.amazonaws.com/myrdspg"
+# END ANSIBLE MANAGED BLOCK: DB
