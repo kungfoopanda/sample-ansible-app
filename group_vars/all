@@ -9,3 +9,18 @@ dynamic_config: "/home/ec2-user/project/group_vars/network_details"
 ssh_keypair_id: create-via-ansible
 ec2_user: ec2_user
 ssh_key_path: /home/ec2-user/.ssh/create-via-ansible.pem
+# BEGIN ANSIBLE MANAGED BLOCK: VPC
+vpc_id: "vpc-03f1d11c2b6ddb5e7"
+inet_gw_id: "igw-0f8a22ecf66560ee2"
+sec_grp_id: "sg-06705a5abf320ec18"
+# END ANSIBLE MANAGED BLOCK: VPC
+# BEGIN ANSIBLE MANAGED BLOCK: Subnets
+az1_subnet_id: "subnet-092d414e4ec0549ef"
+az2_subnet_id: "subnet-0b95fa72f9342ae55"
+# END ANSIBLE MANAGED BLOCK: Subnets
+# BEGIN ANSIBLE MANAGED BLOCK: Route Table
+route_table_id: "rtb-044c8ae818e35a337"
+# END ANSIBLE MANAGED BLOCK: Route Table
+# BEGIN ANSIBLE MANAGED BLOCK: Jenkins
+jenkins_instance_id: "i-0f0075eeb06e9db6a"
+# END ANSIBLE MANAGED BLOCK: Jenkins

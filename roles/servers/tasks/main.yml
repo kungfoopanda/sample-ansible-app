@@ -1,0 +1,3 @@
+---  
+- name: Setup Web and App servers
+  include_tasks: 00_setup_webservers.yml
