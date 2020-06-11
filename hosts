@@ -2,10 +2,18 @@
 localhost
 
 [jenkins]
-ec2-54-169-247-133.ap-southeast-1.compute.amazonaws.com	ansible_user=ec2-user   ansible_ssh_private_key_file=/home/ec2-user/.ssh/ansible-singapore.pem
+54.169.247.133	ansible_user=ec2-user   ansible_ssh_private_key_file=/home/ec2-user/.ssh/ansible-singapore.pem
 
 [servers]
 localhost
 
 [db]
 localhost
+
+[apiservers]
+13.250.6.148	ansible_user=ec2-user   ansible_ssh_private_key_file=/home/ec2-user/.ssh/ansible-singapore.pem
+18.136.101.121	ansible_user=ec2-user   ansible_ssh_private_key_file=/home/ec2-user/.ssh/ansible-singapore.pem
+
+[webservers]
+54.169.74.13	ansible_user=ec2-user   ansible_ssh_private_key_file=/home/ec2-user/.ssh/ansible-singapore.pem
+54.151.175.61	ansible_user=ec2-user   ansible_ssh_private_key_file=/home/ec2-user/.ssh/ansible-singapore.pem

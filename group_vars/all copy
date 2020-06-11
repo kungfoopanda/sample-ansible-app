@@ -29,9 +29,3 @@ route_table_id: "rtb-0fb213b7a7c04a497"
 # BEGIN ANSIBLE MANAGED BLOCK: Jenkins
 jenkins_instance_id: "i-0eae56bf0a3e4eb00"
 # END ANSIBLE MANAGED BLOCK: Jenkins
-# BEGIN ANSIBLE MANAGED BLOCK: LB
-api_lb_name: "app-api-lb-630451122.ap-southeast-1.elb.amazonaws.com"
-api_lb_port: 8080
-web_lb_name: "app-web-lb-270412432.ap-southeast-1.elb.amazonaws.com"
-web_lb_port: 80
-# END ANSIBLE MANAGED BLOCK: LB

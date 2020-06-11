@@ -12,8 +12,21 @@
   roles:
     - servers
   tags: setup_servers
+  vars:
+    apiserver_ids: []
+    webserver_ids: []
 
 - hosts: db
   roles:
     - db
   tags: setup_db
+
+- hosts: apiservers
+  roles:
+    - apiservers
+  tags: setup_apiservers
+
+- hosts: webservers
+  roles:
+    - webservers
+  tags: setup_webservers

@@ -1,0 +1,121 @@
+- name: Create EC2 instance for API
+  ec2:
+    region: "{{ region }}"
+    key_name: "{{ ssh_keypair_id }}"
+    instance_type: "{{ ec2_type }}"
+    image: "{{ ec2_ami }}"
+    wait: yes
+    group_id: "{{ sec_grp_id }}"
+    vpc_subnet_id: "{{ vars['az' + item|string + '_subnet_id'] }}"
+    assign_public_ip: yes
+    exact_count: 1
+    count_tag:
+      Name: "{{ prefix }}-api{{ item }}"
+      type: apiserver
+    instance_tags:
+      Name: "{{ prefix }}-api{{ item }}"
+      type: apiserver
+      role: app
+  with_items:
+    - 1
+    - 2
+
+- name: Get info of all the API servers
+  ec2_instance_info:
+    region: "{{ region }}"
+    filters:
+      "tag:type": apiserver
+  register: apiservers
+
+- name: Populate all instance ids into a variable
+  set_fact:
+    apiserver_ids: "{{apiserver_ids}} + ['{{item.instance_id}}']"
+  with_items: "{{ apiservers.instances }}"
+
+- name: Create Load Balancer for Api servers
+  local_action:
+    module: ec2_elb_lb
+    name: "{{ prefix }}-api-lb"
+    state: present
+    region: "{{ region }}"
+    security_group_ids:
+      - "{{sec_grp_id}}"
+    subnets:
+      - "{{ az1_subnet_id }}"
+      - "{{ az2_subnet_id }}"
+    listeners:
+      - protocol: http
+        load_balancer_port: 8080
+        instance_port: 8080
+    instance_ids: "{{ apiserver_ids }}"
+  register: api_lb
+
+- name: Create EC2 instance for Web
+  ec2:
+    region: "{{ region }}"
+    key_name: "{{ ssh_keypair_id }}"
+    instance_type: "{{ ec2_type }}"
+    image: "{{ ec2_ami }}"
+    wait: yes
+    group_id: "{{ sec_grp_id }}"
+    vpc_subnet_id: "{{ vars['az' + item|string + '_subnet_id'] }}"
+    assign_public_ip: yes
+    exact_count: 1
+    count_tag:
+      Name: "{{ prefix }}-web{{ item }}"
+      type: webserver
+    instance_tags:
+      Name: "{{ prefix }}-web{{ item }}"
+      type: webserver
+      role: app
+  with_items:
+    - 1
+    - 2
+  register: webservers
+
+- name: Get info of all the Web servers
+  ec2_instance_info:
+    region: "{{ region }}"
+    filters:
+      "tag:type": webserver
+  register: webservers
+
+- name: Populate all web server instance ids into a variable
+  set_fact:
+    webserver_ids: "{{webserver_ids}} + ['{{item.instance_id}}']"
+  with_items: "{{ webservers.instances }}"
+
+- name: Create Load Balancer for Web servers
+  local_action:
+    module: ec2_elb_lb
+    name: "{{ prefix }}-web-lb"
+    state: present
+    region: "{{ region }}"
+    security_group_ids:
+      - "{{sec_grp_id}}"
+    subnets:
+      - "{{ az1_subnet_id }}"
+      - "{{ az2_subnet_id }}"
+    listeners:
+      - protocol: http
+        load_balancer_port: 80
+        instance_port: 80
+    instance_ids: "{{ webserver_ids }}"
+  register: web_lb
+
+- debug:
+    var: api_lb
+
+- debug:
+    var: web_lb
+
+- name: Save LB details
+  blockinfile:
+    path: "{{ dynamic_config }}"
+    block: |
+      api_lb_name: "{{ api_lb.elb.dns_name }}"
+      api_lb_port: 8080
+      web_lb_name: "{{ web_lb.elb.dns_name }}"
+      web_lb_port: 80
+    create: yes
+    marker: "# {mark} ANSIBLE MANAGED BLOCK: LB"
