@@ -24,12 +24,5 @@
     create: yes
     marker: "# {mark} ANSIBLE MANAGED BLOCK: Route Table"
 
-- name: Get AWS inventory
-    plugin: aws_ec2:
-    regions: 
-      - "{{ region }}"
-  register: ec2_inventory
 
-- debug:
-    var: ec2_inventory
 # - name: Install Java 1.8
