@@ -1,0 +1,4 @@
+---  
+- name: Setup Postgres
+  include_tasks: 00_setup_db.yml
+

@@ -9,6 +9,9 @@ dynamic_config: "/home/ec2-user/project/group_vars/network_details"
 ssh_keypair_id: create-via-ansible
 ec2_user: ec2_user
 ssh_key_path: /home/ec2-user/.ssh/create-via-ansible.pem
+
+
+
 # BEGIN ANSIBLE MANAGED BLOCK: VPC
 vpc_id: "vpc-03f1d11c2b6ddb5e7"
 inet_gw_id: "igw-0f8a22ecf66560ee2"

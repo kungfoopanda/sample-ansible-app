@@ -1,0 +1,17 @@
+- name: Create multi-zone Postgres on RDS in a VPC
+  local_action:
+    module: rds
+    command: create
+    instance_name: "{{ prefix }}-db"
+    region: "{{ region }}"
+    size: "{{ size }}"
+    instance_type: "{{ instance_type }}"
+    db_engine: "{{ db_engine }}"
+    multi_zone: yes
+    port: 5432
+    db_name: "{{ db_name }}"
+    username: "{{ username }}"
+    password: "{{ password }}"
+    vpc_security_groups: "{{ sec_grp_id }}"
+    iops: "{{ iops }}"
+    subnet: "{{az1_subnet_id }}"

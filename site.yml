@@ -12,3 +12,8 @@
   roles:
     - servers
   tags: setup_servers
+
+- hosts: db
+  roles:
+    - db
+  tags: setup_db
